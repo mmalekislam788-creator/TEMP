@@ -1,17 +1,38 @@
 import requests
 import time
+import os
 
-# ===================== LOGO =====================
-os.system(clear)
-LOGO = r"""
-______    ___  ___ ___  ____  
-|      |  /  _]|   |   ||    \ 
+# ===================== COLORS =====================
+R = "\033[91m"
+G = "\033[92m"
+Y = "\033[93m"
+B = "\033[94m"
+C = "\033[96m"
+W = "\033[97m"
+RESET = "\033[0m"
+# =================================================
+
+os.system("clear")
+
+LOGO = f"""
+{C}______    ___  ___ ___  ____  
+|      |  /  _]|   |   ||    \\ 
 |      | /  [_ | _   _ ||  o  )
-|_|  |_||    _]|  \_/  ||   _/ 
+|_|  |_||    _]|  \\_/  ||   _/ 
   |  |  |   [_ |   |   ||  |   
   |  |  |     ||   |   ||  |   
-  |__|  |_____||___|___||__|  
+  |__|  |_____||___|___||__|   
+{RESET}
 """
+
+INFO_BOX = f"""
+{B}╔══════════════════════════════════════╗
+║ {G} {W} {C}SALAMU ALAIKUM{B}              ║
+║ {G}{W} {Y}MR MELAK{B}                    ║
+║ {G}{W} {R}CYBER STRIKER TEAM{B}          ║
+╚══════════════════════════════════════╝{RESET}
+"""
+
 # =================================================
 
 BASE_URL = "https://api.mail.tm"
@@ -19,9 +40,9 @@ HEADERS = {"Content-Type": "application/json"}
 
 
 def get_domain():
-    response = requests.get(f"{BASE_URL}/domains")
-    response.raise_for_status()
-    return response.json()["hydra:member"][0]["domain"]
+    r = requests.get(f"{BASE_URL}/domains")
+    r.raise_for_status()
+    return r.json()["hydra:member"][0]["domain"]
 
 
 def create_account():
@@ -29,64 +50,68 @@ def create_account():
     email = f"user{int(time.time())}@{domain}"
     password = "Pass1234!"
 
-    requests.post(
+    r = requests.post(
         f"{BASE_URL}/accounts",
         json={"address": email, "password": password},
         headers=HEADERS
     )
 
+    if r.status_code not in (200, 201):
+        raise Exception("Account create failed")
+
     return email, password
 
 
 def get_token(email, password):
-    response = requests.post(
+    r = requests.post(
         f"{BASE_URL}/token",
         json={"address": email, "password": password},
         headers=HEADERS
     )
-    response.raise_for_status()
-    return response.json()["token"]
+    r.raise_for_status()
+    return r.json()["token"]
 
 
 def get_messages(token):
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/messages", headers=headers)
-    response.raise_for_status()
-    return response.json()["hydra:member"]
+    r = requests.get(f"{BASE_URL}/messages", headers=headers)
+    r.raise_for_status()
+    return r.json()["hydra:member"]
 
 
-def read_message(token, message_id):
+def read_message(token, msg_id):
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/messages/{message_id}",
-        headers=headers
-    )
-    response.raise_for_status()
-    return response.json()
+    r = requests.get(f"{BASE_URL}/messages/{msg_id}", headers=headers)
+    r.raise_for_status()
+    return r.json()
 
 
 def main():
     print(LOGO)
-    print("Creating temp mail...\n")
+    print(INFO_BOX)
+
+    print(f"{Y}[*]{W} Creating temp mail...\n")
 
     email, password = create_account()
     token = get_token(email, password)
 
-    print(f"Temp Email : {email}")
-    print("Waiting for inbox...\n")
+    print(f"{G}[✓]{W} Temp Email : {C}{email}{RESET}")
+    print(f"{Y}[*]{W} Waiting for inbox...\n")
 
     while True:
         messages = get_messages(token)
 
         if messages:
-            print(f"📩 {len(messages)} Mail Found\n")
+            print(f"{G}[📩]{W} {len(messages)} Mail Found\n")
 
             for msg in messages:
-                full_msg = read_message(token, msg["id"])
-                print("From   :", full_msg["from"]["address"])
-                print("Subject:", full_msg["subject"])
-                print("Body:\n", full_msg.get("text", "[No Text Body]"))
-                print("-" * 40)
+                full = read_message(token, msg["id"])
+
+                print(f"{B}════════════════════════════════════{RESET}")
+                print(f"{C}From   :{W} {full['from']['address']}")
+                print(f"{C}Subject:{Y} {full['subject']}")
+                print(f"{C}Body:{W}\n{full.get('text', '[No Text Body]')}")
+                print(f"{B}════════════════════════════════════{RESET}")
 
             break
 
