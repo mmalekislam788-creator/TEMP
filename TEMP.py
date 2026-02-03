@@ -2,6 +2,7 @@ import requests
 import time
 
 # ===================== LOGO =====================
+os.system(clear)
 LOGO = r"""
 ______    ___  ___ ___  ____  
 |      |  /  _]|   |   ||    \ 
