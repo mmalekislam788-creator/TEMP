@@ -14,6 +14,7 @@ RESET = "\033[0m"
 
 os.system("clear")
 
+# ===================== LOGO =====================
 LOGO = f"""
 {C}______    ___  ___ ___  ____  
 |      |  /  _]|   |   ||    \\ 
@@ -24,16 +25,17 @@ LOGO = f"""
   |__|  |_____||___|___||__|   
 {RESET}
 """
+# ===============================================
 
+# ===================== INFO BOX =================
 INFO_BOX = f"""
 {B}╔══════════════════════════════════════╗
-║ {G} {W} {C}SALAMU ALAIKUM{B}              ║
+║ {G}{W} {C}SALAMU ALAIKUM{B}              ║
 ║ {G}{W} {Y}MR MELAK{B}                    ║
 ║ {G}{W} {R}CYBER STRIKER TEAM{B}          ║
 ╚══════════════════════════════════════╝{RESET}
 """
-
-# =================================================
+# ===============================================
 
 BASE_URL = "https://api.mail.tm"
 HEADERS = {"Content-Type": "application/json"}
@@ -75,6 +77,10 @@ def get_token(email, password):
 def get_messages(token):
     headers = {"Authorization": f"Bearer {token}"}
     r = requests.get(f"{BASE_URL}/messages", headers=headers)
+
+    if r.status_code == 401:
+        return "UNAUTHORIZED"
+
     r.raise_for_status()
     return r.json()["hydra:member"]
 
@@ -100,6 +106,12 @@ def main():
 
     while True:
         messages = get_messages(token)
+
+        if messages == "UNAUTHORIZED":
+            print(f"{R}[!]{W} Token expired! Re-authenticating...\n")
+            token = get_token(email, password)
+            time.sleep(2)
+            continue
 
         if messages:
             print(f"{G}[📩]{W} {len(messages)} Mail Found\n")
