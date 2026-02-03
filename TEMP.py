@@ -1,20 +1,11 @@
 import requests
 import time
 
-# ================= LOGO =================
-LOGO = r"""
-__    _  _ _  __  
-|      |  /  _]|   |   ||    \ 
-|      | /  [_ | _   _ ||  o  )
-||  |||    ]|  \/  ||   _/ 
-  |  |  |   [_ |   |   ||  |   
-  |  |  |     ||   |   ||  |   
-  |_|  |_||_|_||_|  
-"""
-# ========================================
-
 BASE = "https://api.mail.tm"
-HEADERS = {"Content-Type": "application/json"}
+
+HEADERS = {
+    "Content-Type": "application/json"
+}
 
 def get_domain():
     r = requests.get(f"{BASE}/domains")
@@ -25,11 +16,12 @@ def create_account():
     email = f"user{int(time.time())}@{domain}"
     password = "Pass1234!"
 
-    requests.post(
+    r = requests.post(
         f"{BASE}/accounts",
         json={"address": email, "password": password},
         headers=HEADERS
     )
+
     return email, password
 
 def get_token(email, password):
@@ -51,7 +43,6 @@ def read_message(token, msg_id):
     return r.json()
 
 def main():
-    print(LOGO)
     print("Creating temp mail...\n")
 
     email, password = create_account()
@@ -73,5 +64,5 @@ def main():
             break
         time.sleep(5)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
